@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import com.example.batch.repository.BulkUploadErrorRepository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -42,6 +43,7 @@ public class BulkUploadStatusTasklet implements Tasklet {
     @Value("#{jobExecutionContext['jobId']}")
     private Long batchNo;
 
+    @PersistenceContext
     private EntityManager entityManager;
 
     @Autowired
@@ -49,9 +51,9 @@ public class BulkUploadStatusTasklet implements Tasklet {
 
 
     private static String SQL_UPDATE = "update %s set batch_no = :batchNo, error_file = :errorFile, " +
-            "processing_status = 'D', last_update_by = 'BATCH', last_update_date = current_timestamp where %s = :id";
+            "processing_status = 'D' where %s = :id";
 
-    private static String SQL_GET_PROCESSING_STATUS = "SELECT PROCESSING_STATUS FROM %s WHERE %s = :id AND STATUS = 'A' ";
+    private static String SQL_GET_PROCESSING_STATUS = "SELECT PROCESSING_STATUS FROM %s WHERE %s = :id ";
 
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
@@ -73,7 +75,7 @@ public class BulkUploadStatusTasklet implements Tasklet {
 
     private String createErrorFile(List<BulkUploadError> errors) throws IOException {
         String fileName = StringUtils.join("ErrorFile", batchNo, ".error");
-        File fileOut = new File(fileName);
+        File fileOut = new File("/batch/error/" + fileName);
         if (!fileOut.createNewFile()) {
             throw new IOException("Can't create new file!");
         }

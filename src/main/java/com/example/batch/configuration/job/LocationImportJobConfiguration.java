@@ -23,7 +23,7 @@ import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
-import org.springframework.batch.item.database.support.OraclePagingQueryProvider;
+import org.springframework.batch.item.database.support.MySqlPagingQueryProvider;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
@@ -94,7 +94,7 @@ public class LocationImportJobConfiguration extends BatchConfiguration {
     public ClassifierCompositeItemWriter<LocationBean> classifierLocationUploadWriter() {
         ClassifierCompositeItemWriter<LocationBean> itemWriter = new ClassifierCompositeItemWriter<>();
         itemWriter.setClassifier(FileCustomClassifier.builder()
-                .success(insertNotOnUsMerchantUploadWriter(null, null))
+                .success(insertLocationUploadWriter(null, null))
                 .error(bulkUploadErrorItemWriter)
                 .build());
         return itemWriter;
@@ -108,7 +108,7 @@ public class LocationImportJobConfiguration extends BatchConfiguration {
             FlatFileItemReader<LocationBean> reader = new FlatFileItemReader<>();
             reader.setLinesToSkip(1);
             reader.setResource(inputStreamResource(pathName));
-            reader.setLineMapper(notOnUsMerchantUploadLineMapper());
+            reader.setLineMapper(locationUploadLineMapper());
             return reader;
         } catch (Exception e) {
             return null;
@@ -116,7 +116,7 @@ public class LocationImportJobConfiguration extends BatchConfiguration {
     }
 
     @Bean
-    public CustomLineMapper<LocationBean> notOnUsMerchantUploadLineMapper() {
+    public CustomLineMapper<LocationBean> locationUploadLineMapper() {
         CustomLineMapper<LocationBean> lineMapper = new CustomLineMapper<>();
         Map<String, LineTokenizer> tokenizers = new HashMap<>();
         DelimitedLineTokenizer bodyDelimitedLineTokenizer = new DelimitedLineTokenizer(DELIMITER);
@@ -135,11 +135,11 @@ public class LocationImportJobConfiguration extends BatchConfiguration {
 
     @Bean
     public ValidatingItemProcessor<LocationBean> locationUploadValidateProcessor() {
-        return new CustomItemValidatingProcessor<>(notOnUsMerchantUploadValidator());
+        return new CustomItemValidatingProcessor<>(locationUploadValidator());
     }
 
     @Bean
-    public SpringValidator<LocationBean> notOnUsMerchantUploadValidator() {
+    public SpringValidator<LocationBean> locationUploadValidator() {
         List<Validator> listValidator = new ArrayList<>();
         listValidator.add(locationBeanValidator);
         return new CustomSpringValidator<>(listValidator);
@@ -147,8 +147,8 @@ public class LocationImportJobConfiguration extends BatchConfiguration {
 
     @Bean
     @StepScope
-    public JdbcBatchItemWriter insertNotOnUsMerchantUploadWriter(@Value("#{jobExecutionContext['jobId']}") Long jobId,
-                                                                 @Value("#{jobParameters['bulkUploadId']}") String bulkUploadId) {
+    public JdbcBatchItemWriter insertLocationUploadWriter(@Value("#{jobExecutionContext['jobId']}") Long jobId,
+                                                          @Value("#{jobParameters['bulkUploadId']}") String bulkUploadId) {
         ItemSqlParameterSourceProvider<LocationBean> sqlParameter = fileBean -> {
             BeanPropertySqlParameterSource source = new BeanPropertySqlParameterSource(fileBean);
             return source;
@@ -195,8 +195,8 @@ public class LocationImportJobConfiguration extends BatchConfiguration {
     @Bean
     @SuppressWarnings("unchecked")
     public Step locationUploadSlaveStep() {
-        return stepBuilderFactory.get("notOnUsMerchantUploadSlaveStep").<LocationBean, LocationBean>chunk(chunkSize)
-                .reader(notOnUsMerchantUploadReader(null, null, null))
+        return stepBuilderFactory.get("locationUploadSlaveStep").<LocationBean, LocationBean>chunk(chunkSize)
+                .reader(locationUploadReader(null, null, null))
                 .writer(locationWriter)
                 .faultTolerant()
                 .skip(Exception.class)
@@ -207,7 +207,7 @@ public class LocationImportJobConfiguration extends BatchConfiguration {
 
     @Bean
     @StepScope
-    public ItemReader<? extends LocationBean> notOnUsMerchantUploadReader(
+    public ItemReader<? extends LocationBean> locationUploadReader(
             @Value("#{jobExecutionContext['jobId']}") Long jobId,
             @Value("#{stepExecutionContext['minValue']}") String minValue,
             @Value("#{stepExecutionContext['maxValue']}") String maxValue) {
@@ -218,7 +218,7 @@ public class LocationImportJobConfiguration extends BatchConfiguration {
         reader.setPageSize(chunkSize);
         reader.setRowMapper(new BeanPropertyRowMapper<>(LocationBean.class));
 
-        OraclePagingQueryProvider queryProvider = new OraclePagingQueryProvider();
+        MySqlPagingQueryProvider queryProvider = new MySqlPagingQueryProvider();
         queryProvider.setSelectClause("*");
         queryProvider.setFromClause(TABLE);
         queryProvider.setWhereClause(" BATCH_NO = " + jobId + " AND " + KEY + " >= '" + minValue + "' AND  " + KEY + " <= '" + maxValue + "' ");

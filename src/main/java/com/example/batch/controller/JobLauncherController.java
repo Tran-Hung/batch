@@ -42,7 +42,7 @@ public class JobLauncherController {
                     param.append(map.getKey()).append("=").append(map.getValue()).append(",");
                 }
         );
-        Long jobExecutionId = this.jobOperator.start(jobName, RandomStringUtils.randomAlphabetic(8));
+        Long jobExecutionId = this.jobOperator.start(jobName, param.toString());
         log.info("Job Execution Id : {}", jobExecutionId);
         return jobExecutionId;
     }

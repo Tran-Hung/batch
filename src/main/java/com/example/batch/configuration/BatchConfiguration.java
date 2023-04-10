@@ -89,6 +89,7 @@ public class BatchConfiguration implements ApplicationContextAware {
     @Value("${taskExecutor.thread.timeout}")
     private int threadTimeOut;
 
+    @PersistenceContext
     protected EntityManager entityManager;
 
     @Autowired
@@ -143,7 +144,7 @@ public class BatchConfiguration implements ApplicationContextAware {
     }
 
     public InputStreamResource inputStreamResource(String path) throws IOException {
-        InputStream file = new FileInputStream("/sharedata/ols/datas/" + path);
+        InputStream file = new FileInputStream("/batch/input/" + path);
         return file == null ? null : new InputStreamResource(file);
     }
 

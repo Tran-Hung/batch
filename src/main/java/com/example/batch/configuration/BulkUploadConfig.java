@@ -16,8 +16,8 @@ import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 public class BulkUploadConfig extends BatchConfiguration {
 
     private static String INSERT_SQL = "INSERT INTO BULK_UPLOAD_ERROR " +
-            "(RECORD_NO, BULK_UPLOAD, BULK_UPLOAD_ID, LINE_NUMBER, LINE, ERROR_CODE, ERROR_MESSAGE, ETL_DATE, BATCH_NO) " +
-            "VALUES (SEQ_BULK_UPLOAD_ERROR.nextval, '%s', '%s', :lineNumber, :line, :errorCode, :errorMessage, current_timestamp, %s)";
+            "(BULK_UPLOAD, BULK_UPLOAD_ID, LINE_NUMBER, LINE, ERROR_CODE, ERROR_MESSAGE, ETL_DATE, BATCH_NO) " +
+            "VALUES ('%s', '%s', :lineNumber, :line, :errorCode, :errorMessage, current_timestamp, %s)";
 
     @Bean
     @StepScope

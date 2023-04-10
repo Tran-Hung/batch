@@ -31,6 +31,6 @@ public class BulkUploadConstant {
 
         String DELIMITER = ",";
         String[] COLUMN_DETAIL = new String[]{"locationId", "name"};
-        String FILE_TO_DB_SQL = "INSERT INTO BULK_UPLOAD_LOCATION (RECORD_NO,BULK_UPLOAD_ID,LINE_NUMBER,ETL_DATE,LINE,location_id,NAME,BATCH_NO) " +
-                " VALUES (SEQ_BULK_UPLOAD_LOCATION.NEXTVAL,'%s',:lineNumber,current_timestamp,:line,:locationId,:name,%s)";    }
+        String FILE_TO_DB_SQL = "INSERT INTO BULK_UPLOAD_LOCATION (BULK_UPLOAD_ID,LINE_NUMBER,ETL_DATE,LINE,location_id,NAME,BATCH_NO) " +
+                " VALUES ('%s',:lineNumber,current_timestamp,:line,:locationId,:name,%s)";    }
 }
